@@ -1,0 +1,76 @@
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dvc-test 
+  namespace: aigc-infra 
+spec:
+  initContainers:
+    - args:
+      env:
+      - name: "GIT_REPO_URL"
+        value: "https://github.com/vjoke/dvc-test.git"
+      - name: "REPO_DIR"
+        value: "/app/dvc-test"
+      command:
+      - /app/setup_repo.sh 
+      image: mtlab-cn-shanghai.cr.volces.com/aigc-infra/dvc-base:v0.0.3
+      imagePullPolicy: IfNotPresent
+      name: dvc-setup
+      volumeMounts:
+        - name: alluxio-fuse
+          mountPath: /app/dvc-test/.dvc/cache
+          mountPropagation: HostToContainer
+          subPath: oss-modelbase-bj-oss/dvc/test
+        - name: repo-storage
+          mountPath: /app/dvc-test
+      resources:
+        limits:
+          cpu: "1"
+          memory: 1Gi
+        requests:
+          cpu: "100m"
+          memory: 128Mi
+      securityContext:
+        runAsGroup: 0
+        runAsUser: 0
+  containers:
+    - name: demo
+      image: mtlab-cn-shanghai.cr.volces.com/aigc-infra/fio:v3.19.0
+      imagePullPolicy: Always
+      args:
+      - -c
+      - while true; do sleep 1; done
+      command:
+      - sh
+      resources:
+        limits:
+          cpu: "8"
+          memory: 32Gi
+        requests:
+          cpu: "2"
+          memory: 4Gi
+      volumeMounts:
+        - name: alluxio-fuse
+          mountPath: /app/dvc-test/.dvc/cache
+          mountPropagation: HostToContainer
+          subPath: oss-modelbase-bj-oss/dvc/test
+        - name: repo-storage
+          mountPath: /app/dvc-test
+
+  volumes:
+    - name: alluxio-fuse
+      persistentVolumeClaim:
+        claimName: alluxio-fuse
+    - name: repo-storage
+      emptyDir: {}
+
+  imagePullSecrets:
+    - name: matrix-image-pull-secret
+  nodeSelector:
+    matrix.meitu.com/alluxio-component: "fuse"
+  tolerations:
+  - operator: Exists
+    
+
+  
