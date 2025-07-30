@@ -1,5 +1,5 @@
 [project]
-name = "dvc-demo"
+name = "dvc-test"
 version = "0.1.0"
 description = ""
 authors = [
@@ -16,7 +16,9 @@ dvc-oss = ">=3.0.0,<4.0.0"
 # --- Pin the entire network stack to a known-stable configuration ---
 ossfs = "2025.5.0"
 aiohttp = "3.9.5"
-
+dvc-s3 = "^3.2.2"
+# enforce addressing_style to use virtual host
+s3fs = { git = "https://github.com/vjoke/s3fs.git", tag = "2025.7.2" }
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
